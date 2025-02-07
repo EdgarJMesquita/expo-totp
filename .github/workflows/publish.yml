@@ -17,7 +17,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup
-        uses: npm i
+        run: npm i
 
       - name: Prepare
         run: npm run prepublishOnly
