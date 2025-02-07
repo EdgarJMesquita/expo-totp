@@ -1,37 +1,92 @@
-import { useEvent } from 'expo';
-import ExpoTotp, { ExpoTotpView } from 'expo-totp';
-import { Button, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { useEvent } from "expo";
+import ExpoTotp, { HmacAlgorithm, TotpPayload } from "expo-totp";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Button,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useAnimatedValue,
+  View,
+} from "react-native";
 
 export default function App() {
-  const onChangePayload = useEvent(ExpoTotp, 'onChange');
+  const [totp, setTotp] = useState<TotpPayload | null>(null);
+  const animation = useAnimatedValue(0);
+  const initialProgress = useRef(false);
+
+  const animationWidth = animation.interpolate({
+    inputRange: [0, 100],
+    outputRange: ["0%", "100%"],
+  });
+
+  const start = useCallback(() => {
+    ExpoTotp.start("MY_SUPER_SECRET_KEY", {
+      algorithm: HmacAlgorithm.SHA512,
+      digits: 6,
+      interval: 30,
+    });
+  }, []);
+
+  const stop = useCallback(() => {
+    ExpoTotp.stop();
+    initialProgress.current = false;
+    animation.stopAnimation();
+    setTotp(null);
+  }, []);
+
+  useEffect(() => {
+    const listener = ExpoTotp.addListener("onChange", setTotp);
+    return listener.remove;
+  }, []);
+  // Or use the useEvent hook
+  // const totp = useEvent(ExpoTotp, "onCodeChange");
+
+  useEffect(() => {
+    if (!totp?.progress) {
+      return;
+    }
+    Animated.timing(animation, {
+      toValue: initialProgress ? totp.progress : 100,
+      useNativeDriver: false,
+      duration: 100,
+    }).start(() => {
+      initialProgress.current = true;
+      Animated.timing(animation, {
+        toValue: 0,
+        duration: totp.remainingTime * 1000,
+        useNativeDriver: false,
+      }).start();
+    });
+  }, [totp?.code]);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
         <Text style={styles.header}>Module API Example</Text>
-        <Group name="Constants">
-          <Text>{ExpoTotp.PI}</Text>
+        <Group name="Controls">
+          <Button title="Start" onPress={start} />
+          <Button title="Stop" onPress={stop} />
         </Group>
-        <Group name="Functions">
-          <Text>{ExpoTotp.hello()}</Text>
-        </Group>
-        <Group name="Async functions">
-          <Button
-            title="Set value"
-            onPress={async () => {
-              await ExpoTotp.setValueAsync('Hello from JS!');
-            }}
-          />
-        </Group>
-        <Group name="Events">
-          <Text>{onChangePayload?.value}</Text>
-        </Group>
-        <Group name="Views">
-          <ExpoTotpView
-            url="https://www.example.com"
-            onLoad={({ nativeEvent: { url } }) => console.log(`Loaded: ${url}`)}
-            style={styles.view}
-          />
+        <Group name="Totp">
+          {!!totp && (
+            <>
+              <Text style={styles.code}>{totp?.code}</Text>
+              <View style={styles.progressContainer}>
+                <Animated.View
+                  style={[
+                    styles.progress,
+                    {
+                      width: animationWidth,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.text}> {totp?.remainingTime} s</Text>
+            </>
+          )}
         </Group>
       </ScrollView>
     </SafeAreaView>
@@ -47,7 +102,7 @@ function Group(props: { name: string; children: React.ReactNode }) {
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   header: {
     fontSize: 30,
     margin: 20,
@@ -56,18 +111,42 @@ const styles = {
     fontSize: 20,
     marginBottom: 20,
   },
+  text: {
+    fontSize: 16,
+    alignSelf: "center",
+    marginTop: 10,
+  },
+  code: {
+    fontSize: 20,
+    fontWeight: "600",
+    letterSpacing: 8,
+    alignSelf: "center",
+    marginBottom: 12,
+  },
   group: {
     margin: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
   },
   container: {
     flex: 1,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
   },
   view: {
     flex: 1,
     height: 200,
   },
-};
+  progressContainer: {
+    marginTop: 8,
+    height: 8,
+    width: "100%",
+    borderRadius: 4,
+    overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+  progress: {
+    height: 8,
+    backgroundColor: "blue",
+  },
+});

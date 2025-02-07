@@ -1,17 +1,9 @@
 {
-  "platforms": [
-    "apple",
-    "android",
-    "web"
-  ],
+  "platforms": ["apple", "android"],
   "apple": {
-    "modules": [
-      "ExpoTotpModule"
-    ]
+    "modules": ["ExpoTotpModule"]
   },
   "android": {
-    "modules": [
-      "expo.modules.totp.ExpoTotpModule"
-    ]
+    "modules": ["expo.modules.totp.ExpoTotpModule"]
   }
 }

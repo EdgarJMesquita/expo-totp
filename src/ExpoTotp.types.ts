@@ -1,19 +1,37 @@
-import type { StyleProp, ViewStyle } from 'react-native';
-
-export type OnLoadEventPayload = {
-  url: string;
-};
-
 export type ExpoTotpModuleEvents = {
-  onChange: (params: ChangeEventPayload) => void;
+  onChange: (params: TotpPayload) => void;
 };
 
-export type ChangeEventPayload = {
-  value: string;
+export type TotpPayload = {
+  code: string;
+  remainingTime: number;
+  progress: number;
 };
 
-export type ExpoTotpViewProps = {
-  url: string;
-  onLoad: (event: { nativeEvent: OnLoadEventPayload }) => void;
-  style?: StyleProp<ViewStyle>;
+export enum HmacAlgorithm {
+  SHA512 = "SHA512",
+  SHA384 = "SHA384",
+  SHA256 = "SHA256",
+  SHA1 = "SHA1",
+  MD5 = "MD5",
+}
+
+export type TotpOptions = {
+  /**
+   * @default
+   * 30
+   */
+  interval: number;
+
+  /**
+   * @default
+   * 6
+   */
+  digits: number;
+
+  /**
+   * @default
+   * SHA512
+   */
+  algorithm: HmacAlgorithm;
 };

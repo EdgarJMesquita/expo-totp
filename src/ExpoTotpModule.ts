@@ -1,12 +1,11 @@
-import { NativeModule, requireNativeModule } from 'expo';
+import { NativeModule, requireNativeModule } from "expo";
 
-import { ExpoTotpModuleEvents } from './ExpoTotp.types';
+import { ExpoTotpModuleEvents, TotpOptions } from "./ExpoTotp.types";
 
 declare class ExpoTotpModule extends NativeModule<ExpoTotpModuleEvents> {
-  PI: number;
-  hello(): string;
-  setValueAsync(value: string): Promise<void>;
+  start(secretKey: string, options?: Partial<TotpOptions>): Promise<void>;
+  stop(): Promise<void>;
 }
 
 // This call loads the native module object from the JSI.
-export default requireNativeModule<ExpoTotpModule>('ExpoTotp');
+export default requireNativeModule<ExpoTotpModule>("ExpoTotp");
