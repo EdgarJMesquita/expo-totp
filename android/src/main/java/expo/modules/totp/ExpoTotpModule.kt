@@ -9,10 +9,9 @@ import java.util.TimerTask
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import android.util.Base64
-import android.util.Log
 import kotlin.math.pow
 
-const val CHANGE_EVENT_NAME = "onChange"
+const val CHANGE_EVENT_NAME = "onTotpUpdate"
 
 class ExpoTotpModule : Module() {
 
@@ -24,14 +23,27 @@ class ExpoTotpModule : Module() {
 
     Events(CHANGE_EVENT_NAME)
 
-    AsyncFunction("start", this@ExpoTotpModule::start)
+    AsyncFunction("getTotp", this@ExpoTotpModule::getTotp)
 
-    AsyncFunction("stop", this@ExpoTotpModule::stop)
+    AsyncFunction("startUpdates", this@ExpoTotpModule::startUpdates)
+
+    AsyncFunction("stopUpdates", this@ExpoTotpModule::stopUpdates)
+
+    AsyncFunction("start", this@ExpoTotpModule::startUpdates)
+
+    AsyncFunction("stop", this@ExpoTotpModule::stopUpdates)
 
   }
 
-  private fun start(secretKey: String, options: TotpOptions?){
-    stop()
+  private fun getTotp(secretKey: String, options: TotpOptions?): Bundle {
+    val secretBase64 = Base64.encodeToString(secretKey.toByteArray(), Base64.DEFAULT)
+    val finalOptions = options ?: TotpOptions()
+
+    return this@ExpoTotpModule.computeTotp(secretBase64, finalOptions)
+  }
+
+  private fun startUpdates(secretKey: String, options: TotpOptions?){
+    stopUpdates()
 
     timer = Timer()
 
@@ -47,7 +59,7 @@ class ExpoTotpModule : Module() {
     },0,1000)
   }
 
-  private fun stop(){
+  private fun stopUpdates(){
     timer?.cancel()
     timer = null
   }

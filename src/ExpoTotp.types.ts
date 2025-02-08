@@ -1,5 +1,5 @@
 export type ExpoTotpModuleEvents = {
-  onChange: (params: TotpPayload) => void;
+  onTotpUpdate: (params: TotpPayload) => void;
 };
 
 export type TotpPayload = {

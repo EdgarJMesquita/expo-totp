@@ -1,6 +1,8 @@
 # expo-totp
 
-A library that providers native side TOTP(Time-based One-Time Password) generation.
+A library that providers client side TOTP(Time-based One-Time Password) generation.
+
+Made with Expo Modules API.
 
 _expo-totp_ is not available in Expo Go, learn more about [development builds](https://docs.expo.dev/develop/development-builds/introduction/).
 
@@ -30,39 +32,32 @@ npx expo install expo-totp
 # Usage
 
 ```typescript
-import ExpoTotp, { HmacAlgorithm, TotpPayload } from "expo-totp";
-import { useCallback, useEffect, useState } from "react";
+import { HmacAlgorithm, useExpoTotp } from "expo-totp";
 import { Button, SafeAreaView, StyleSheet, Text } from "react-native";
 
 export default function App() {
-  const [totp, setTotp] = (useState < TotpPayload) | (null > null);
+  const totp = useExpoTotp();
 
-  const start = useCallback(() => {
-    ExpoTotp.start("MY_SUPER_SECRET_KEY", {
+  const start = () => {
+    totp.start("MY_SUPER_SECRET_KEY", {
       algorithm: HmacAlgorithm.SHA512,
       digits: 6,
       interval: 30,
     });
-  }, []);
+  };
 
-  const stop = useCallback(() => {
-    ExpoTotp.stop();
-    setTotp(null);
-  }, []);
-
-  useEffect(() => {
-    const listener = ExpoTotp.addListener("onChange", setTotp);
-    return listener.remove;
-  }, []);
+  const stop = () => {
+    totp.stop();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {!!totp && (
+      {!!totp.code && (
         <>
-          <Text style={styles.code}>{totp?.code}</Text>
-          <Text style={styles.text}>Time: {totp?.remainingTime} s</Text>
+          <Text style={styles.code}>{totp.code}</Text>
+          <Text style={styles.text}>Time: {totp.remainingTime} s</Text>
           <Text style={styles.text}>
-            Progress: {totp?.progress.toFixed(1)}%
+            Progress: {totp.progress?.toFixed(1)}%
           </Text>
         </>
       )}
@@ -92,22 +87,45 @@ const styles = StyleSheet.create({
     alignContent: "center",
   },
 });
+
 ```
 
 # API
 
 ```typescript
-import ExpoTotp from "expo-totp";
+import ExpoTotp, { useExpoTotp } from "expo-totp";
+```
+
+## Hooks
+
+### `useExpoTotp()`
+
+Easy to use hook for obtain otp info, start and stop.
+
+```typescript
+const { code, progress, remainingTime, start, stop } = useExpoTotp();
 ```
 
 ## Methods
 
-### `start()`
+### `startUpdates()`
+
+Compute TOTP once
+
+```typescript
+const totp = await ExpoTotp.getTotp("MY_SUPER_SECRET_KEY",
+  interval: 30,
+  digits: 6,
+  algorithm: HmacAlgorithm.SHA512
+)
+```
+
+### `startUpdates()`
 
 Start TOTP generation
 
 ```typescript
-ExpoTotp.start("YOUR_SUPER_SECRET_KEY", {
+ExpoTotp.startUpdates("YOUR_SUPER_SECRET_KEY", {
   interval: 30,
   digits: 6,
   algorithm: HmacAlgorithm.SHA512,
@@ -120,7 +138,7 @@ Listen for updates with ExpoTotp.addListener()
 
 ```typescript
 useEffect(() => {
-  const listener = ExpoTotp.addListener("onChange", (totp: TotpPayload) => {
+  const listener = ExpoTotp.addListener("onTotpUpdate", (totp: TotpPayload) => {
     // your logic goes here...
   });
   return () => listener.remove();
@@ -131,15 +149,15 @@ or
 
 ```typescript
 import { useEvent } from "expo";
-const totp = useEvent(ExpoTotp, "onCodeChange");
+const totp = useEvent(ExpoTotp, "onTotpUpdate");
 ```
 
-### `stop()`
+### `stopUpdates()`
 
 Stop any TOTP generation
 
 ```typescript
-ExpoTotp.stop();
+ExpoTotp.stopUpdates();
 ```
 
 ## Interfaces
@@ -164,7 +182,7 @@ type TotpOptions = {
 
 ### `TotpPayload`
 
-Defines the payload for `onChange` event listener
+Defines the payload for `onTotpUpdate` event listener
 
 ```typescript
 export type TotpPayload = {

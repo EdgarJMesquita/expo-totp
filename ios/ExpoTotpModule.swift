@@ -1,7 +1,7 @@
 import ExpoModulesCore
 import CommonCrypto
 
-fileprivate let CHANGE_EVENT_NAME = "onChange"
+fileprivate let CHANGE_EVENT_NAME = "onTotpUpdate"
 
 public class ExpoTotpModule: Module {
     private var timer: Timer?
@@ -11,14 +11,27 @@ public class ExpoTotpModule: Module {
 
         Events(CHANGE_EVENT_NAME)
       
-        AsyncFunction("start", start)
+        AsyncFunction("getTotp", getTotp)
+        
+        AsyncFunction("startUpdates", startUpdates)
+        
+        AsyncFunction("stopUpdates", stopUpdates)
 
-        AsyncFunction("stop", stop)
+        AsyncFunction("start", startUpdates)
+        
+        AsyncFunction("stop", stopUpdates)
         
     }
     
-    private func start(secretKey: String, options: TotpOptions?){
-        stop()
+    private func getTotp(secretKey: String, options: TotpOptions?) -> [String: Any]? {
+        let secretBase64 = Data(secretKey.utf8).base64EncodedString()
+        let finalOptions = options ?? TotpOptions()
+        
+        return computeTotp(secretBase64: secretBase64, options: finalOptions)
+    }
+    
+    private func startUpdates(secretKey: String, options: TotpOptions?){
+        stopUpdates()
         
         let secretBase64 = Data(secretKey.utf8).base64EncodedString()
         
@@ -36,15 +49,15 @@ public class ExpoTotpModule: Module {
         }
     }
     
-    private func stop(){
+    private func stopUpdates(){
         timer?.invalidate()
         timer = nil
     }
     
     private func computeTotp(secretBase64: String, options: TotpOptions) -> [String: Any]? {
         let currentTime = Int(Date().timeIntervalSince1970)
-        let remainingTime = Double(options.interval) - Double(currentTime % Int(options.interval))
-        let currentInterval = currentTime / Int(options.interval)
+        let remainingTime = options.interval - currentTime % options.interval
+        let currentInterval = currentTime / options.interval
         
         guard let keyData = Data(base64Encoded: secretBase64) else {
           NSLog("Invalid secret provided")
@@ -77,7 +90,7 @@ public class ExpoTotpModule: Module {
         return [
           "code": otpString,
           "remainingTime": remainingTime,
-          "progress": Double(remainingTime) / Double(options.interval) * 100
+          "progress": (Double(remainingTime) / Double(options.interval)) * 100
         ]
     }
 }

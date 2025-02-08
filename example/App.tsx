@@ -1,6 +1,6 @@
-import { useEvent } from "expo";
-import ExpoTotp, { HmacAlgorithm, TotpPayload } from "expo-totp";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { HmacAlgorithm, useExpoTotp } from "expo-totp";
+import ExpoTotpModule from "expo-totp/ExpoTotpModule";
+import { useCallback, useEffect, useRef } from "react";
 import {
   Animated,
   Button,
@@ -13,7 +13,8 @@ import {
 } from "react-native";
 
 export default function App() {
-  const [totp, setTotp] = useState<TotpPayload | null>(null);
+  const totp = useExpoTotp();
+
   const animation = useAnimatedValue(0);
   const initialProgress = useRef(false);
 
@@ -23,7 +24,8 @@ export default function App() {
   });
 
   const start = useCallback(() => {
-    ExpoTotp.start("MY_SUPER_SECRET_KEY", {
+    ExpoTotpModule.getTotp("MY_SUPER_SECRET_KEY").then(console.log);
+    totp.start("MY_SUPER_SECRET_KEY", {
       algorithm: HmacAlgorithm.SHA512,
       digits: 6,
       interval: 30,
@@ -31,18 +33,10 @@ export default function App() {
   }, []);
 
   const stop = useCallback(() => {
-    ExpoTotp.stop();
+    totp.stop();
     initialProgress.current = false;
     animation.stopAnimation();
-    setTotp(null);
   }, []);
-
-  useEffect(() => {
-    const listener = ExpoTotp.addListener("onChange", setTotp);
-    return listener.remove;
-  }, []);
-  // Or use the useEvent hook
-  // const totp = useEvent(ExpoTotp, "onCodeChange");
 
   useEffect(() => {
     if (!totp?.progress) {
@@ -56,7 +50,7 @@ export default function App() {
       initialProgress.current = true;
       Animated.timing(animation, {
         toValue: 0,
-        duration: totp.remainingTime * 1000,
+        duration: totp?.remainingTime! * 1000,
         useNativeDriver: false,
       }).start();
     });
@@ -71,7 +65,7 @@ export default function App() {
           <Button title="Stop" onPress={stop} />
         </Group>
         <Group name="Totp">
-          {!!totp && (
+          {!!totp.code && (
             <>
               <Text style={styles.code}>{totp?.code}</Text>
               <View style={styles.progressContainer}>
