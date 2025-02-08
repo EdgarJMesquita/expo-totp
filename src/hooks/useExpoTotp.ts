@@ -6,9 +6,12 @@ import { TotpOptions, TotpPayload } from "../ExpoTotp.types";
 export function useExpoTotp() {
   const [totp, setTotp] = useState<TotpPayload | null>(null);
 
-  const start = useCallback((secretKey: string, options?: TotpOptions) => {
-    ExpoTotp.startUpdates(secretKey, options);
-  }, []);
+  const start = useCallback(
+    async (secretKey: string, options?: TotpOptions) => {
+      return ExpoTotp.startUpdates(secretKey, options);
+    },
+    []
+  );
 
   const stop = useCallback(() => {
     ExpoTotp.stopUpdates();

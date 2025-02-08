@@ -32,15 +32,16 @@ npx expo install expo-totp
 # Usage
 
 ```typescript
-import { HmacAlgorithm, useExpoTotp } from "expo-totp";
+import { useExpoTotp } from "expo-totp";
 import { Button, SafeAreaView, StyleSheet, Text } from "react-native";
 
 export default function App() {
   const totp = useExpoTotp();
 
   const start = () => {
+    // Supports only ASCII secret keys
     totp.start("MY_SUPER_SECRET_KEY", {
-      algorithm: HmacAlgorithm.SHA512,
+      algorithm: "SHA512",
       digits: 6,
       interval: 30,
     });
@@ -108,7 +109,7 @@ const { code, progress, remainingTime, start, stop } = useExpoTotp();
 
 ## Methods
 
-### `startUpdates()`
+### `getTotp()`
 
 Compute TOTP once
 
@@ -116,7 +117,7 @@ Compute TOTP once
 const totp = await ExpoTotp.getTotp("MY_SUPER_SECRET_KEY",
   interval: 30,
   digits: 6,
-  algorithm: HmacAlgorithm.SHA512
+  algorithm: "SHA512"
 )
 ```
 
@@ -128,7 +129,7 @@ Start TOTP generation
 ExpoTotp.startUpdates("YOUR_SUPER_SECRET_KEY", {
   interval: 30,
   digits: 6,
-  algorithm: HmacAlgorithm.SHA512,
+  algorithm: "SHA512",
 });
 ```
 
@@ -174,6 +175,14 @@ type TotpOptions = {
 };
 ```
 
+### `HmacAlgorithm`
+
+Defines options for TOTP generation
+
+```typescript
+type HmacAlgorithm = "SHA512" | "SHA384" | "SHA256" | "SHA1" | "MD5";
+```
+
 | Property    | Type            | Default  | Description           |
 | ----------- | --------------- | -------- | --------------------- |
 | `interval`  | `number `       | `30`     | Interval in seconds   |
@@ -190,20 +199,6 @@ export type TotpPayload = {
   remainingTime: number;
   progress: number;
 };
-```
-
-## Enums
-
-Defines the enum for algorithm.
-
-```typescript
-enum HmacAlgorithm {
-  SHA512 = "SHA512",
-  SHA384 = "SHA384",
-  SHA256 = "SHA256",
-  SHA1 = "SHA1",
-  MD5 = "MD5",
-}
 ```
 
 # Contributing

@@ -1,7 +1,8 @@
-import { HmacAlgorithm, useExpoTotp } from "expo-totp";
+import { useExpoTotp } from "expo-totp";
 import ExpoTotpModule from "expo-totp/ExpoTotpModule";
 import { useCallback, useEffect, useRef } from "react";
 import {
+  Alert,
   Animated,
   Button,
   SafeAreaView,
@@ -23,13 +24,25 @@ export default function App() {
     outputRange: ["0%", "100%"],
   });
 
-  const start = useCallback(() => {
-    ExpoTotpModule.getTotp("MY_SUPER_SECRET_KEY").then(console.log);
-    totp.start("MY_SUPER_SECRET_KEY", {
-      algorithm: HmacAlgorithm.SHA512,
-      digits: 6,
-      interval: 30,
-    });
+  const getSingleTotp = useCallback(async () => {
+    try {
+      const totpInfo = await ExpoTotpModule.getTotp("MY_SUPER_SECRET_KEY");
+      Alert.alert("TOTP", JSON.stringify(totpInfo, null, 2));
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  const start = useCallback(async () => {
+    try {
+      await totp.start("MY_SUPER_SECRET_KEY", {
+        algorithm: "SHA512",
+        digits: 6,
+        interval: 30,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
   const stop = useCallback(() => {
@@ -61,8 +74,9 @@ export default function App() {
       <ScrollView style={styles.container}>
         <Text style={styles.header}>Module API Example</Text>
         <Group name="Controls">
-          <Button title="Start" onPress={start} />
-          <Button title="Stop" onPress={stop} />
+          <Button title="Start Updates" onPress={start} />
+          <Button title="Stop Updates" onPress={stop} />
+          <Button title="Get Single Totp" onPress={getSingleTotp} />
         </Group>
         <Group name="Totp">
           {!!totp.code && (

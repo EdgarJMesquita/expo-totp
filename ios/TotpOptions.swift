@@ -17,6 +17,7 @@ enum HmacAlgorithm: String, Enumerable {
     case MD5
     
     func getAlgorithm() -> Int {
+        
         switch self {
             case .SHA512:
                 return kCCHmacAlgSHA512
@@ -29,6 +30,7 @@ enum HmacAlgorithm: String, Enumerable {
             case .MD5:
                 return kCCHmacAlgMD5
         }
+        
     }
     
     
@@ -50,6 +52,7 @@ enum HmacAlgorithm: String, Enumerable {
 }
 
 struct TotpOptions: Record {
+    
     @Field
     var interval: Int = 30
     

@@ -8,30 +8,24 @@ export type TotpPayload = {
   progress: number;
 };
 
-export enum HmacAlgorithm {
-  SHA512 = "SHA512",
-  SHA384 = "SHA384",
-  SHA256 = "SHA256",
-  SHA1 = "SHA1",
-  MD5 = "MD5",
-}
+export type HmacAlgorithm = "SHA512" | "SHA384" | "SHA256" | "SHA1" | "MD5";
 
 export type TotpOptions = {
   /**
    * @default
    * 30
    */
-  interval: number;
+  interval?: number;
 
   /**
    * @default
    * 6
    */
-  digits: number;
+  digits?: number;
 
   /**
    * @default
    * SHA512
    */
-  algorithm: HmacAlgorithm;
+  algorithm?: HmacAlgorithm;
 };

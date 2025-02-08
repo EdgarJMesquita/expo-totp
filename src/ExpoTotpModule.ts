@@ -4,11 +4,8 @@ import { EventSubscription } from "expo-modules-core";
 import { ExpoTotpModuleEvents, TotpOptions } from "./ExpoTotp.types";
 
 declare class ExpoTotpModule extends NativeModule<ExpoTotpModuleEvents> {
-  getTotp(secretKey: string, options?: Partial<TotpOptions>): Promise<void>;
-  startUpdates(
-    secretKey: string,
-    options?: Partial<TotpOptions>
-  ): Promise<void>;
+  getTotp(secretKey: string, options?: TotpOptions): Promise<void>;
+  startUpdates(secretKey: string, options?: TotpOptions): Promise<void>;
   stopUpdates(): Promise<void>;
   addListener<EventName extends "onTotpUpdate">(
     eventName: EventName,
@@ -17,7 +14,7 @@ declare class ExpoTotpModule extends NativeModule<ExpoTotpModuleEvents> {
   /**
    * @deprecated
    */
-  start(secretKey: string, options?: Partial<TotpOptions>): Promise<void>;
+  start(secretKey: string, options?: TotpOptions): Promise<void>;
   /**
    * @deprecated
    */

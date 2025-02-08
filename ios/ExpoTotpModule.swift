@@ -4,7 +4,9 @@ import CommonCrypto
 fileprivate let CHANGE_EVENT_NAME = "onTotpUpdate"
 
 public class ExpoTotpModule: Module {
+    
     private var timer: Timer?
+    
     
     public func definition() -> ModuleDefinition {
         Name("ExpoTotp")
@@ -23,19 +25,30 @@ public class ExpoTotpModule: Module {
         
     }
     
-    private func getTotp(secretKey: String, options: TotpOptions?) -> [String: Any]? {
-        let secretBase64 = Data(secretKey.utf8).base64EncodedString()
+    
+    private func getTotp(secretKey: String, options: TotpOptions?) throws -> [String: Any] {
         let finalOptions = options ?? TotpOptions()
+        let secretBase64 = Data(secretKey.utf8).base64EncodedString()
         
-        return computeTotp(secretBase64: secretBase64, options: finalOptions)
+        guard let totpInfo = try? computeTotp(secretBase64: secretBase64, options: finalOptions) else {
+            throw Exceptions.InvalidSecretKey()
+        }
+        return totpInfo
     }
     
-    private func startUpdates(secretKey: String, options: TotpOptions?){
+    
+    private func startUpdates(secretKey: String, options: TotpOptions?) throws {
+        
         stopUpdates()
+        
+        let finalOptions = options ?? TotpOptions()
         
         let secretBase64 = Data(secretKey.utf8).base64EncodedString()
         
-        let finalOptions = options ?? TotpOptions()
+        guard let totpInfo = computeTotp(secretBase64: secretBase64, options: finalOptions) else {
+            throw Exceptions.InvalidSecretKey()
+        }
+        sendEvent(CHANGE_EVENT_NAME, totpInfo)
         
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -47,21 +60,26 @@ public class ExpoTotpModule: Module {
                 sendEvent(CHANGE_EVENT_NAME, totpInfo)
             }
         }
+        
     }
+    
     
     private func stopUpdates(){
+        
         timer?.invalidate()
         timer = nil
+        
     }
     
+    
     private func computeTotp(secretBase64: String, options: TotpOptions) -> [String: Any]? {
+       
         let currentTime = Int(Date().timeIntervalSince1970)
         let remainingTime = options.interval - currentTime % options.interval
         let currentInterval = currentTime / options.interval
         
         guard let keyData = Data(base64Encoded: secretBase64) else {
-          NSLog("Invalid secret provided")
-          return nil
+            return nil
         }
         
         // Create message for HMAC
@@ -92,5 +110,7 @@ public class ExpoTotpModule: Module {
           "remainingTime": remainingTime,
           "progress": (Double(remainingTime) / Double(options.interval)) * 100
         ]
+        
     }
+
 }
