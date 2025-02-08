@@ -69,10 +69,10 @@ public class ExpoTotpModule: Module {
         let counterData = withUnsafeBytes(of: &counter) { Data($0) }
 
         // Generate HMAC-SHA512 hash
-        var hash = [UInt8](repeating: 0, count: Int(options.algorithm.getLenght()))
+        var hash = [UInt8](repeating: 0, count: Int(options.algorithm.getLength()))
         keyData.withUnsafeBytes { keyBytes in
           counterData.withUnsafeBytes { counterBytes in
-              CCHmac(CCHmacAlgorithm(options.algorithm.getAlgorith()), keyBytes.baseAddress, keyData.count, counterBytes.baseAddress, counterData.count, &hash)
+              CCHmac(CCHmacAlgorithm(options.algorithm.getAlgorithm()), keyBytes.baseAddress, keyData.count, counterBytes.baseAddress, counterData.count, &hash)
           }
         }
 

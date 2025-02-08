@@ -16,7 +16,7 @@ enum HmacAlgorithm: String, Enumerable {
     case SHA1
     case MD5
     
-    func getAlgorith() -> Int {
+    func getAlgorithm() -> Int {
         switch self {
             case .SHA512:
                 return kCCHmacAlgSHA512
@@ -32,7 +32,7 @@ enum HmacAlgorithm: String, Enumerable {
     }
     
     
-    func getLenght() -> Int32 {
+    func getLength() -> Int32 {
         switch self {
             case .SHA512:
                 return CC_SHA512_DIGEST_LENGTH
